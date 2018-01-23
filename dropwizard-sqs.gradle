@@ -1,0 +1,28 @@
+apply plugin: "groovy"
+apply from: rootProject.file('gradle/convention.gradle')
+
+dependencies {
+    compile "io.dropwizard:dropwizard-core:${dropwizardVersion}"
+    compile "smartthings:dropwizard-guice:${dropwizardCommon}"
+    compile "com.amazonaws:aws-java-sdk-sqs:1.11.184"
+    compile "com.amazonaws:aws-java-sdk-sns:1.11.184"
+    compile "com.amazonaws:aws-java-sdk-sts:1.11.184"
+    compile "io.github.resilience4j:resilience4j-circuitbreaker:0.10.0"
+    compile "io.github.resilience4j:resilience4j-metrics:0.10.0"
+    compile "io.github.resilience4j:resilience4j-prometheus:0.10.0"
+
+    testCompile "io.dropwizard:dropwizard-testing:${dropwizardVersion}"
+    testCompile "smartthings:dropwizard-async-http-client:${dropwizardCommon}"
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+    testCompile "org.objenesis:objenesis:2.6"
+    testCompile "cglib:cglib-nodep:3.2.4"
+    testRuntime "ch.qos.logback:logback-classic:1.1.7"
+    testRuntime "org.slf4j:slf4j-api:${slf4jVersion}"
+}
+
+test {
+    if (project.hasProperty('awsEndpointUrl')) {
+        systemProperty 'awsEndpointUrl', awsEndpointUrl
+    }
+}
+
