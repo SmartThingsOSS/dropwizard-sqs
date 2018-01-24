@@ -1,0 +1,65 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.12.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+    }
+}
+
+def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
+if (jvmEncoding != "UTF-8") {
+    throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
+}
+
+if (!JavaVersion.current().java8Compatible) {
+    throw new IllegalStateException("Must be built with Java 8 or higher")
+}
+
+group 'smartthings'
+version = rootProject.file('version.txt').text.trim()
+
+apply plugin: 'java'
+apply plugin: 'base'
+apply plugin: 'groovy'
+apply plugin: 'idea'
+apply plugin: 'com.github.ben-manes.versions'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url 'https://plugins.gradle.org/m2/'
+    }
+    maven {
+        url  "http://dl.bintray.com/smartthingsoss/maven"
+    }
+    mavenLocal()
+}
+
+compileJava {
+    options.compilerArgs << "-Xlint:unchecked"
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile "io.dropwizard:dropwizard-core:${dropwizardVersion}"
+    compile "smartthings:dropwizard-guice:${dropwizardCommon}"
+    compile "com.amazonaws:aws-java-sdk-sqs:1.11.184"
+    compile "com.amazonaws:aws-java-sdk-sns:1.11.184"
+    compile "com.amazonaws:aws-java-sdk-sts:1.11.184"
+    compile "io.github.resilience4j:resilience4j-circuitbreaker:0.10.0"
+    compile "io.github.resilience4j:resilience4j-metrics:0.10.0"
+    compile "io.github.resilience4j:resilience4j-prometheus:0.10.0"
+
+    testCompile "io.dropwizard:dropwizard-testing:${dropwizardVersion}"
+    testCompile "smartthings:dropwizard-async-http-client:${dropwizardCommon}"
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+    testCompile "org.objenesis:objenesis:2.6"
+    testCompile "cglib:cglib-nodep:3.2.4"
+    testRuntime "ch.qos.logback:logback-classic:1.1.7"
+    testRuntime "org.slf4j:slf4j-api:${slf4jVersion}"
+}
