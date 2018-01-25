@@ -9,7 +9,7 @@ A [Dropwizard](https://github.com/SmartThingsOSS/dropwizard-common) module for w
 
 ### Running Tests
 
-To execute tests, an instance (GOAWS)[https://github.com/p4tin/goaws] is required to be running. This repo bundles 
+To execute tests, an instance [GOAWS](https://github.com/p4tin/goaws) is required to be running. This repo bundles 
 a Docker compose recipe for that purpose; within the repo root execute:
 
 ```
