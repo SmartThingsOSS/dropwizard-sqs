@@ -72,13 +72,21 @@ jobs:
       - run: ./gradlew jacocoTestReport
       - store_test_results:
           path: ./build/test-results/test
-      - run: sudo apt-get -y install python-pip
-      - run: pip install --user --upgrade codecov
-      - run: ~/.local/bin/codecov --token=${CODECOV_TOKEN}
       - <<: *save_cache
       - <<: *persist_to_workspace
 
-  upload-snapshot:
+  codecov:
+    <<: *defaults
+    docker:
+      - image: circleci/python:latest
+    steps:
+      - <<: *attach_workspace
+      - <<: *restore_cache
+      - run: pip install --user --upgrade codecov
+      - run: ~/.local/bin/codecov --token=${CODECOV_TOKEN}
+      - <<: *save_cache
+
+  snapshot:
     <<: *defaults
     docker:
       - image: circleci/openjdk:8-jdk
@@ -87,7 +95,7 @@ jobs:
       - <<: *restore_cache
       - run: ./gradlew publish -PsmartThingsUserName=$ARTIFACTORY_USERNAME -PsmartThingsPassword=$ARTIFACTORY_PASSWORD
 
-  upload-release:
+  release:
     <<: *defaults
     docker:
       - image: circleci/openjdk:8-jdk
@@ -105,13 +113,16 @@ workflows:
       - test:
           requires:
             - build
-      - upload-snapshot:
+      - codecov:
+          requires:
+            - test
+      - snapshot:
           requires:
             - test
           filters:
             branches:
               only: master
-      - upload-release:
+      - release:
           requires:
             - test
           filters:
