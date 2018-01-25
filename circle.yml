@@ -8,11 +8,13 @@ save_cache: &save_cache
       - ~/.gradle/wrapper
       - ~/.gradle/caches
       - ~/.local
-    key: dw-sqs-deps-{{ checksum "build.gradle" }}
+      - ~/.cache/pip
+    key: dw-sqs-deps-{{ checksum "build.gradle" }}-{{ checksum "gradle.properties" }}
 
 restore_cache: &restore_cache
   restore_cache:
     keys:
+      - dw-sqs-deps-{{ checksum "build.gradle" }}-{{ checksum "gradle.properties" }}
       - dw-sqs-deps-{{ checksum "build.gradle" }}
       - dw-sqs-deps-
 
