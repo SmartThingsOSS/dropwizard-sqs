@@ -4,13 +4,8 @@ Local:
   LogMessages: true
   LogFile: ./goaws_messages.log
   Queues:
-    - Name: bookie_app_events
     - Name: functional_test_queue
   Topics:
-    - Name: bookie_app_events
-      Subscriptions:
-        - QueueName: bookie_app_events
-          Raw: false
     - Name: functional_test_queue
       Subscriptions:
         - QueueName: functional_test_queue
