@@ -16,7 +16,7 @@ apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'com.github.ben-manes.versions'
 apply plugin: "jacoco"
-
+apply from: rootProject.file('gradle/publishing.gradle')
 
 buildscript {
     repositories {
