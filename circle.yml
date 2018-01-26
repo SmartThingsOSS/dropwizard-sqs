@@ -123,10 +123,14 @@ workflows:
             - test
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - master-1.2.x
       - release:
           requires:
             - test
           filters:
             branches:
-              only: release
+              only:
+                - release
+                - release-1.2.x
