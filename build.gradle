@@ -46,7 +46,6 @@ compileJava {
 }
 
 dependencies {
-    compile "io.dropwizard:dropwizard-core:${dropwizardVersion}"
     compile "smartthings:dropwizard-guice:${dropwizardCommon}"
     compile "com.amazonaws:aws-java-sdk-sqs:1.11.184"
     compile "com.amazonaws:aws-java-sdk-sns:1.11.184"
