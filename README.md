@@ -4,6 +4,7 @@ A [Dropwizard](https://github.com/SmartThingsOSS/dropwizard-common) module for w
 
 [![codecov](https://codecov.io/gh/SmartThingsOSS/dropwizard-sqs/branch/master/graph/badge.svg)](https://codecov.io/gh/SmartThingsOSS/dropwizard-sqs)
 [![CircleCI](https://circleci.com/gh/SmartThingsOSS/dropwizard-sqs/tree/master.svg?style=svg)](https://circleci.com/gh/SmartThingsOSS/dropwizard-sqs/tree/master)
+[ ![Download](https://api.bintray.com/packages/smartthingsoss/maven/smartthings.dropwizard-sqs/images/download.svg) ](https://bintray.com/smartthingsoss/maven/smartthings.dropwizard-sqs/_latestVersion)
 
 ## Development
 
