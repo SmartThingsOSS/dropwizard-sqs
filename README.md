@@ -2,8 +2,8 @@
 
 A [Dropwizard](https://github.com/SmartThingsOSS/dropwizard-common) module for working with Amazon's Simple Queue Service and Simple Notification Service
 
-[![codecov](https://codecov.io/gh/SmartThingsOSS/dropwizard-sqs/branch/master/graph/badge.svg)](https://codecov.io/gh/SmartThingsOSS/dropwizard-sqs)
-[![CircleCI](https://circleci.com/gh/SmartThingsOSS/dropwizard-sqs/tree/master.svg?style=svg)](https://circleci.com/gh/SmartThingsOSS/dropwizard-sqs/tree/master)
+[![codecov](https://codecov.io/gh/SmartThingsOSS/dropwizard-sqs/branch/master-1.2.x/graph/badge.svg)](https://codecov.io/gh/SmartThingsOSS/dropwizard-sqs/branch/master-1.2.x)
+[![CircleCI](https://circleci.com/gh/SmartThingsOSS/dropwizard-sqs/tree/master-1.2.x.svg?style=svg)](https://circleci.com/gh/SmartThingsOSS/dropwizard-sqs/tree/master-1.2.x)
 [ ![Download](https://api.bintray.com/packages/smartthingsoss/maven/smartthings.dropwizard-sqs/images/download.svg) ](https://bintray.com/smartthingsoss/maven/smartthings.dropwizard-sqs/_latestVersion)
 
 ## Development
