@@ -5,6 +5,7 @@ Local:
   LogFile: ./goaws_messages.log
   Queues:
     - Name: functional_test_queue
+    - Name: simple_test_queue
   Topics:
     - Name: functional_test_queue
       Subscriptions:
