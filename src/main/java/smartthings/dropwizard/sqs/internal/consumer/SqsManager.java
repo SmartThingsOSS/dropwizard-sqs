@@ -1,14 +1,13 @@
 package smartthings.dropwizard.sqs.internal.consumer;
 
+import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import smartthings.dropwizard.sqs.AmazonSQSProvider;
-import smartthings.dropwizard.sqs.DefaultSqsService;
-import smartthings.dropwizard.sqs.SqsModule;
-import smartthings.dropwizard.sqs.SqsService;
+import smartthings.dropwizard.sqs.*;
+import smartthings.dropwizard.sqs.internal.producer.DefaultQueueWriter;
 
 import java.util.Collection;
 import java.util.Map;
@@ -19,7 +18,8 @@ public class SqsManager implements Managed {
 
     private static final Logger LOG = LoggerFactory.getLogger(SqsManager.class);
 
-    private final Map<String, SqsService> sqsMap = new ConcurrentHashMap<>();
+    private final Map<String, SqsService> sqsConsumerMap = new ConcurrentHashMap<>();
+    private final Map<String, QueueWriter> sqsQueueWriterMap = new ConcurrentHashMap<>();
     private final SqsModule.Config config;
     private final AmazonSQSProvider sqsProvider;
 
@@ -34,10 +34,26 @@ public class SqsManager implements Managed {
         if (config.isEnabled()) {
             LOG.debug("Starting up SqsManager...");
             config.getConsumers().stream()
-                .filter(SqsModule.ConsumerConfig::isEnabled)
-                .map(SqsModule.ConsumerConfig::getEndpoints)
-                .flatMap(Collection::stream)
-                .forEach(this::create);
+                    .filter(SqsModule.ConsumerConfig::isEnabled)
+                    .map(SqsModule.ConsumerConfig::getEndpoints)
+                    .flatMap(Collection::stream)
+                    .forEach(this::createConsumer);
+
+            config.getQueueWriters().entrySet().stream()
+                    .forEach(entry -> {
+                        // reuse service if it already exists
+                        String queueWriterName = entry.getKey();
+                        SqsModule.EndpointConfig endpointConfig = entry.getValue();
+                        String consumerKey = getCacheKey(endpointConfig);
+                        SqsService service = sqsConsumerMap.containsKey(consumerKey) ?
+                                sqsConsumerMap.get(consumerKey):
+                                createService(entry.getValue());
+                        if (service != null) {
+                            GetQueueUrlResult result = service.getQueueUrl(endpointConfig.getQueueName());
+                            sqsQueueWriterMap.put(queueWriterName,
+                                    new DefaultQueueWriter(result.getQueueUrl(), sqsProvider.get(endpointConfig)));
+                        }
+                    });
         } else {
             LOG.debug("Skipping start up of SqsManager...");
         }
@@ -48,8 +64,17 @@ public class SqsManager implements Managed {
         LOG.debug("Shutting down SqsManager...");
     }
 
+    public QueueWriter getQueueWriter(String queueWriterEndpointName) {
+        QueueWriter queueWriter = sqsQueueWriterMap.get(queueWriterEndpointName);
+        if (queueWriter == null) {
+            LOG.error("No SQS QueueWriter exists for name={}", queueWriterEndpointName);
+            throw new IllegalStateException("Unable to resolve SQS QueueWriter for name: " + queueWriterEndpointName);
+        }
+        return queueWriter;
+    }
+
     public SqsService get(SqsModule.EndpointConfig config) {
-        SqsService sqs = sqsMap.get(getCacheKey(config));
+        SqsService sqs = sqsConsumerMap.get(getCacheKey(config));
         if (sqs == null) {
             LOG.error(
                 "No SQS client exists for region={} endpoint={}",
@@ -60,17 +85,22 @@ public class SqsManager implements Managed {
         return sqs;
     }
 
-    private SqsService create(SqsModule.EndpointConfig config) {
+    private SqsService createConsumer(SqsModule.EndpointConfig config) {
+        String cacheKey = getCacheKey(config);
+        if (sqsConsumerMap.containsKey(cacheKey)) {
+            return sqsConsumerMap.get(cacheKey);
+        }
+        LOG.debug("Creating SqsService for endpoint={}", cacheKey);
+        SqsService sqsService = createService(config);
+        sqsConsumerMap.put(cacheKey, sqsService);
+        return sqsService;
+    }
+
+    private SqsService createService(SqsModule.EndpointConfig config) {
         if (config.getRegionName() == null) {
             throw new IllegalArgumentException("Consumer endpoint config requires a valid configured AWS Region.");
         }
-        String cacheKey = getCacheKey(config);
-        LOG.debug("Creating SqsService for endpoint={}", cacheKey);
-        if (sqsMap.containsKey(cacheKey)) {
-            return sqsMap.get(cacheKey);
-        }
         SqsService sqsService = new DefaultSqsService(sqsProvider.get(config));
-        sqsMap.put(cacheKey, sqsService);
         return sqsService;
     }
 
