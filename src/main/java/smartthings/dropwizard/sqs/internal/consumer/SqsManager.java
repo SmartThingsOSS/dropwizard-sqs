@@ -85,10 +85,6 @@ public class SqsManager implements Managed {
         return sqs;
     }
 
-    private SqsService createQueueWriter(SqsModule.EndpointConfig config) {
-        return null;
-    }
-
     private SqsService createConsumer(SqsModule.EndpointConfig config) {
         String cacheKey = getCacheKey(config);
         if (sqsConsumerMap.containsKey(cacheKey)) {
