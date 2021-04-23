@@ -42,7 +42,7 @@ jobs:
     steps:
       - checkout
       - <<: *restore_cache
-      - run: ./gradlew classes testClasses
+      - run: ./gradlew classes testClasses -PsmartThingsUserName=$ARTIFACTORY_USERNAME -PsmartThingsPassword=$ARTIFACTORY_PASSWORD
       - <<: *save_cache
       - <<: *persist_to_workspace
 
@@ -50,30 +50,26 @@ jobs:
     <<: *defaults
     docker:
       - image: circleci/openjdk:8-jdk
-      - image: pafortin/goaws
-        entrypoint: /bin/sh
-        command: -c 'echo "$GOAWS_CONF" > /conf/goaws.yaml && cat /conf/goaws.yaml && exec /goaws_linux_amd64 -debug'
         environment:
-          GOAWS_CONF: |
-            Local:
-              Host: 0.0.0.0
-              Port: 4100
-              LogMessages: true
-              LogFile: ./goaws_messages.log
-              Queues:
-                - Name: functional_test_queue
-                - Name: simple_test_queue
-              Topics:
-                - Name: functional_test_queue
-                  Subscriptions:
-                    - QueueName: functional_test_queue
-                      Raw: false
+          AWS_ENDPOINT_URL: "http://goaws:4100"
+          TOPIC_ARN: "arn:aws:sns:us-east-1:000000000000:functional_test_queue"
+          GRADLE_USER_HOME: ~/repo/.gradle
+      - image: pafortin/goaws:1.0.1
+        environment:
+          PUBLICHOST: goaws
+        name: goaws
     steps:
       - <<: *attach_workspace
       - <<: *restore_cache
-      - run: ./gradlew check
-      - run: ./gradlew jacocoTestReport
-      - store_test_results:
+      - run: |
+         sudo apt-get update
+         sudo apt-get -y install libatomic1 python-pip
+         pip install boto3
+         mkdir ~/.aws
+         cp ./etc/circleci/credentials ~/.aws
+      - run: python ./etc/circleci/goaws.py --endpoint-url="http://goaws:4100"
+      - run: ./gradlew check jacocoTestReport -PsmartThingsUserName=$ARTIFACTORY_USERNAME -PsmartThingsPassword=$ARTIFACTORY_PASSWORD -PawsEndpointUrl=$AWS_ENDPOINT_URL -PtopicArn=$TOPIC_ARN --stacktrace --debug
+      - store_test_results:  
           path: ./build/test-results/test
       - <<: *save_cache
       - <<: *persist_to_workspace
@@ -105,27 +101,28 @@ jobs:
     steps:
       - <<: *attach_workspace
       - <<: *restore_cache
-      - run: ./gradlew bintrayUpload
+      - run: ./gradlew publish -PsmartThingsUserName=$ARTIFACTORY_USERNAME -PsmartThingsPassword=$ARTIFACTORY_PASSWORD
 
 
 workflows:
   version: 2
   build-ci:
     jobs:
-      - build
+      - build:
+          context: smartthingsoss
       - test:
+          context: smartthingsoss
           requires:
             - build
-      - codecov:
-          requires:
-            - test
       - snapshot:
+          context: smartthingsoss
           requires:
             - test
           filters:
             branches:
               only: master
       - release:
+          context: smartthingsoss
           requires:
             - test
           filters:
