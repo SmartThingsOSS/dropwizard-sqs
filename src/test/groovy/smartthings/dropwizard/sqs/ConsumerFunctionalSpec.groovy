@@ -357,7 +357,7 @@ class TestModule extends AbstractDwModule {
 @Path("/")
 class TestScopeResource implements WebResource {
 
-    private final String topicArn = 'arn:aws:sns:local:000000000000:functional_test_queue'
+    private final String topicArn = getSetting('topicArn', 'arn:aws:sns:local:000000000000:functional_test_queue')
     private final ObjectMapper objectMapper
     private final SnsService snsService
     private final ConsumerManager consumerManager
@@ -403,12 +403,14 @@ class TestScopeResource implements WebResource {
     @POST
     @Path('/publish')
     PublishResult methodPublish(TestMessage request) {
-        return snsService.publish(
+        def result = snsService.publish(
             new PublishRequest(
                 topicArn,
                 objectMapper.writeValueAsString(request)
             )
         )
+        print result
+        return result
     }
 
     @POST
@@ -423,5 +425,19 @@ class TestScopeResource implements WebResource {
     javax.ws.rs.core.Response methodCircuitClose() {
         consumerManager.resume()
         return javax.ws.rs.core.Response.noContent().build()
+    }
+
+    static String getSetting(String name, String defaultValue = null) {
+        def val = System.getProperty(name) ?: System.getenv(toEnvFormat(name)) ?: defaultValue
+        print val
+        return val
+    }
+
+    static String toEnvFormat(String text) {
+        text ==~ /^[A-Z_]+$/ ?
+            text :
+            text.replaceAll(/([A-Z])/, /_$1/).toUpperCase()
+                .replaceAll(/^_/, '')
+                .replaceAll(/\._?/, '__')
     }
 }
